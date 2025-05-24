@@ -1,7 +1,9 @@
-from core.queue_manager import QueueManager, Message
+from core.work_queue import TaskMessage
 
 
-fn consume_messages(mut queue: QueueManager):
-    while not queue.is_empty():
-        var msg = queue.dequeue()
-        print("Consumed:", msg.id, "-", msg.payload)
+fn process_message(msg: TaskMessage) -> Bool:
+    if msg.id == 2:
+        print("Simulated failure for:", msg.id)
+        return False
+    print("Processed:", msg.id, "-", msg.payload)
+    return True
