@@ -1,0 +1,13 @@
+
+# pixi environments
+.pixi
+*.egg-info
+# magic environments
+.magic
+# Ignore Mojo build artifacts
+main
+*.mojopkg
+*.o
+*.ll
+__pycache__/
+*.tmp
