@@ -1,28 +1,21 @@
-from core.work_queue import WorkQueue, TaskMessage
-from consumers import process_message
+from core.work_queue import WorkQueue, TaskMessage, TrashQueue
 from producers import produce_messages
+from consumers import process_message
 from collections import List
 
 
 fn main():
     var queue: WorkQueue
-    queue = WorkQueue()
+    queue = WorkQueue("JobQueue")
+
+    var trash: TrashQueue
+    trash = TrashQueue("DeadLetterQueue")
 
     var messages = List[TaskMessage](
-        TaskMessage(1, "Task A"),
-        TaskMessage(2, "This should fail"),
-        TaskMessage(3, "Task B"),
+        TaskMessage(1, "Do A"),
+        TaskMessage(2, "Will fail"),
+        TaskMessage(3, "Do B"),
     )
 
     produce_messages(queue, messages)
-
-    try:
-        var msg = queue.queue.popleft()
-        var ok = process_message(msg)
-        if ok:
-            print("Message OK:", msg.id)
-        else:
-            print("Sending to failed queue:", msg.id)
-            queue.failed.append(msg)
-    except IndexError:
-        print("Queue unexpectedly empty.")
+    queue.process_all(process_message, trash)

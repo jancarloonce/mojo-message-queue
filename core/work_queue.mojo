@@ -18,26 +18,47 @@ struct TaskMessage:
         self.payload = other.payload
 
 
+struct TrashQueue:
+    var name: String
+    var messages: Deque[TaskMessage]
+
+    fn __init__(out self: TrashQueue, name: String):
+        self.name = name
+        self.messages = Deque[TaskMessage]()
+
+    fn enqueue(mut self: TrashQueue, msg: TaskMessage):
+        print("Moved to TrashQueue:", self.name, "-", msg.id)
+        self.messages.append(msg)
+
+
 struct WorkQueue:
+    var name: String
     var queue: Deque[TaskMessage]
-    var failed: Deque[TaskMessage]
 
-    fn __init__(out self: WorkQueue):
+    fn __init__(out self: WorkQueue, name: String):
+        self.name = name
         self.queue = Deque[TaskMessage]()
-        self.failed = Deque[TaskMessage]()
 
-    fn enqueue(mut self: WorkQueue, item: TaskMessage):
-        self.queue.append(item)
+    fn enqueue(mut self: WorkQueue, message: TaskMessage):
+        print("Enqueued to", self.name, ":", message.id)
+        self.queue.append(message)
 
-    fn try_process(mut self: WorkQueue, mut handler: fn (TaskMessage) -> Bool):
-        try:
-            var message = self.queue.popleft()
-            var success = handler(message)
+    fn process_all(
+        mut self: WorkQueue,
+        handler: fn (TaskMessage) -> Bool,
+        mut trash: TrashQueue,
+    ):
+        var i = 0
+        var total = self.queue.__len__()
 
-            if not success:
-                print("Message failed, moved to FailedQueue")
-                self.failed.append(message)
-            else:
-                print("Message processed:", message.id)
-        except IndexError:
-            print("dasda")
+        while i < total:
+            try:
+                var msg = self.queue.popleft()
+                var ok = handler(msg)
+                if not ok:
+                    trash.enqueue(msg)
+                else:
+                    print("Processed from", self.name, ":", msg.id)
+            except IndexError:
+                print("Queue", self.name, "unexpectedly empty")
+            i = i + 1

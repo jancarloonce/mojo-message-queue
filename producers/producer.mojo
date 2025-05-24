@@ -1,6 +1,7 @@
 from core.work_queue import WorkQueue, TaskMessage
 from collections import List
 
+
 fn produce_messages(mut queue: WorkQueue, messages: List[TaskMessage]):
     var i: Int = 0
     while i < messages.__len__():
